@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { profile } from '../data/profile.js'
 import { MailIcon, PhoneIcon, PinIcon, GitHubIcon, LinkedInIcon, CopyIcon, CheckIcon, SendIcon } from './Icons.jsx'
 import Reveal from './Reveal.jsx'
@@ -29,7 +29,11 @@ export default function Contact() {
     setForm((f) => ({ ...f, [name]: value }))
     if (errors[name]) setErrors((er) => ({ ...er, [name]: undefined }))
   }
-
+  useEffect(() => {
+    if (status.type !== 'success' && status.type !== 'error') return
+    const t = setTimeout(() => setStatus({ type: 'idle', text: '' }), 4000)
+    return () => clearTimeout(t)
+  }, [status])
   const copyEmail = async () => {
     try {
       await navigator.clipboard.writeText(profile.email)
@@ -128,12 +132,18 @@ export default function Contact() {
             <button type="submit" className="btn primary send-btn" disabled={status.type === 'sending'}>
               <SendIcon /> {status.type === 'sending' ? 'Sending…' : 'Send Message'}
             </button>
-            <p className={`status ${status.type}`} role="status" aria-live="polite">
+            {/* <p className={`status ${status.type}`} role="status" aria-live="polite">
               {status.type === 'success' || status.type === 'error' ? status.text : ''}
-            </p>
+            </p> */}
           </form>
         </Reveal>
       </div>
+      {(status.type === 'success' || status.type === 'error') && (
+        <div className={`toast ${status.type}`} role="status" aria-live="polite">
+          <span className="toast-ico">{status.type === 'success' ? <CheckIcon /> : '!'}</span>
+          <p>{status.text}</p>
+        </div>
+      )}
     </section>
   )
 }
